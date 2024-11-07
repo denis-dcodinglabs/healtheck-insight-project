@@ -10,14 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "chart.js": "^4.4.1",
-    "react-chartjs-2": "^5.2.0",
-    "react-hot-toast": "^2.4.1",
-    "date-fns": "^3.3.1",
     "axios": "^1.6.7",
-    "query-string": "^8.2.0"
+    "chart.js": "^4.4.1",
+    "date-fns": "^3.3.1",
+    "lucide-react": "^0.454.0",
+    "query-string": "^8.2.0",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.4.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
