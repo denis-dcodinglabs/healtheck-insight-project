@@ -2,19 +2,42 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Filter, RefreshCw } from 'lucide-react';
 import MetricsGrid from './MetricsGrid';
+import FilterPanel from './FilterPanel';
+
 import HealthChart from './HealthChart';
 import RiskIndicator from './RiskIndicator';
-import FilterPanel from './FilterPanel';
-import { useHealthData } from '../hooks/useHealthData';
-import toast from 'react-hot-toast';
+import StatisticsCard from './StatisticsCard';
+import { fetchHealthIndicators } from '../services/api';
 
-export default function DashboardLayout() {
-  const { data, loading, error, refreshData } = useHealthData();
+const DashboardLayout = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({ year: new Date().getFullYear(), causeName: 'All Causes', state: '' });
 
-  const handleRefresh = () => {
-    refreshData();
-    toast.success('Data refreshed successfully');
+  const getData = async () => {
+    try {
+      setLoading(true);
+      const result = await fetchHealthIndicators(filters);
+      console.log('Fetched data:', result); // Debugging log
+      setData(result);
+    } catch (error) {
+      console.error('Error fetching data:', error); // Debugging log
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    getData();
+  }, []); // Empty dependency array ensures this runs only once
+
+  const handleFilterChange = (newFilters) => {
+    console.log('New filters:', newFilters); // Debugging log
+    setFilters(newFilters);
+  };
+    
 const [allData,setAllData]=useState([])
 const [filteredData,setFilteredData]=useState([])
 const [selectedYear,setSelectedYear]=useState("2017")
@@ -42,30 +65,11 @@ const [causes,setCauses]=useState([])
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-100">
+      <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">Health Analytics Dashboard</h1>
-            <button
-              onClick={handleRefresh}
-              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh Data
-            </button>
-          </div>
-          
-          <div className="mt-4 flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search health metrics..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-            <FilterPanel />
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">Health Metrics Dashboard</h1>
           </div>
 
           {/* Year Selection Dropdown */}
@@ -86,25 +90,21 @@ const [causes,setCauses]=useState([])
           {/* Cause Selection Dropdown */}
          
         </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <MetricsGrid loading={loading} data={data} />
-        </div>
-
+        <FilterPanel onFilterChange={handleFilterChange} />
+        <StatisticsCard data={data?.cdc} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-4">Health Trends Over Time</h3>
-            <HealthChart type="line" data={data?.trends} />
+            <h3 className="text-lg font-semibold mb-4">Life Expectancy Over Time (WHO)</h3>
+            <HealthChart type="line" data={data?.who?.value.map(item => ({ label: item.TimeDim, value: item.NumericValue }))} />
           </div>
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-4">Demographics Distribution</h3>
-            <HealthChart type="pie" data={data?.demographics} />
+            <h3 className="text-lg font-semibold mb-4">Health Expenditure (% of GDP) (World Bank)</h3>
+            <HealthChart type="pie" data={data?.worldBank.map(item => ({ label: item.country.value, value: item.value }))} />
           </div>
         </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h3 className="text-lg font-semibold mb-4">Risk Analysis by Age Group</h3>
-          <RiskIndicator data={data?.riskFactors} />
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8" style={{ height: '400px' }}>
+          <h3 className="text-lg font-semibold mb-4">Combined Insights: Mortality vs. Health Expenditure</h3>
+          <HealthChart type="bar" data={data?.cdc.map(item => ({ label: item.cause_name, value: item.deaths }))} />
         </div>
         <div className="mt-4">
             <label htmlFor="year-select" className="block text-sm font-medium text-gray-700">Select Year</label>
@@ -154,4 +154,6 @@ const [causes,setCauses]=useState([])
       </div>
     </div>
   );
-}
+};
+
+export default DashboardLayout;
