@@ -5,6 +5,8 @@ import DashboardLayout from "./components/DashboardLayout";
 import RiskZonesPage from "./pages/risk-zones/RiskZonesPage";
 import Dashboard from "./components/Dashboard";
 
+import Home from "./components/Home";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -35,7 +37,7 @@ function App() {
                         } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`
                       }
                     >
-                      Dashboard
+                      Home
                     </NavLink>
                     <NavLink
                       to="/dashboard/risk-zones"
@@ -68,7 +70,7 @@ function App() {
           </nav>
           <main className="flex-1">
             <Routes>
-              <Route path="/" element={<DashboardLayout />} />
+              <Route path="/" element={<Home />} />
               <Route path="/dashboard/risk-zones" element={<RiskZonesPage />} />
               <Route
                 path="/dashboard/healthcare-insights"
